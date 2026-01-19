@@ -41,22 +41,32 @@ if not logger.handlers:
     logger.setLevel(logging.INFO)
 
 # Convenience functions for different log levels
-def log_info(msg):
-    """Log info level message"""
-    logger.info(msg)
+def log_info(*args, **kwargs):
+    """Log info level message - accepts multiple arguments like print()"""
+    sep = kwargs.get('sep', ' ')
+    message = sep.join(str(arg) for arg in args)
+    logger.info(message)
 
-def log_debug(msg):
-    """Log debug level message"""
-    logger.debug(msg)
+def log_debug(*args, **kwargs):
+    """Log debug level message - accepts multiple arguments like print()"""
+    sep = kwargs.get('sep', ' ')
+    message = sep.join(str(arg) for arg in args)
+    logger.debug(message)
 
-def log_warning(msg):
-    """Log warning level message"""
-    logger.warning(msg)
+def log_warning(*args, **kwargs):
+    """Log warning level message - accepts multiple arguments like print()"""
+    sep = kwargs.get('sep', ' ')
+    message = sep.join(str(arg) for arg in args)
+    logger.warning(message)
 
-def log_error(msg):
-    """Log error level message"""
-    logger.error(msg)
+def log_error(*args, **kwargs):
+    """Log error level message - accepts multiple arguments like print()"""
+    sep = kwargs.get('sep', ' ')
+    message = sep.join(str(arg) for arg in args)
+    logger.error(message)
 
-def log_critical(msg):
-    """Log critical level message"""
-    logger.critical(msg)
+def log_critical(*args, **kwargs):
+    """Log critical level message - accepts multiple arguments like print()"""
+    sep = kwargs.get('sep', ' ')
+    message = sep.join(str(arg) for arg in args)
+    logger.critical(message)
