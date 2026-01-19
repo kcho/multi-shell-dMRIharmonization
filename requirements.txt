@@ -4,5 +4,7 @@ plumbum
 pynrrd
 pandas
 matplotlib
-rich
+# Optional: rich (for prettified colored logging output)
+# If not installed, standard logging will be used automatically
+# rich
 git+https://github.com/pnlbwh/conversion.git
