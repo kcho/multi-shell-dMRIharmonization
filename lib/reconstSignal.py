@@ -18,6 +18,7 @@ from util import *
 from buildTemplate import applyXform
 from local_med_filter import local_med_filter
 from preprocess import dti_harm, preprocessing
+from logging_config import log_info
 import sys
 from rish import rish
 
@@ -41,7 +42,7 @@ def antsReg(img, mask, mov, outPrefix):
     else:
         logFile= pjoin(outPrefix+ '_ANTs.log')
         f= open(logFile, 'w')
-        print(f'See {logFile} for details of registration')
+        log_info(f'See {logFile} for details of registration')
 
     if mask:
         p= Popen((' ').join(['antsRegistrationSyNQuick.sh',
@@ -109,7 +110,7 @@ def findLargestConnectMask(img, mask):
 
 def approx(imgPath, maskPath):
 
-    print(f'Fitting spherical harmonics on {imgPath} ...')
+    log_info(f'Fitting spherical harmonics on {imgPath} ...')
 
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
@@ -231,7 +232,7 @@ def reconst(imgPath, maskPath, moving, templatePath):
     b0, shm_coeff, qb_model = rish(imgPath, maskPath, inPrefix, outPrefix, N_shm)
 
 
-    print(f'Registering template FA to {imgPath} space ...')
+    log_info(f'Registering template FA to {imgPath} space ...')
     outPrefix = pjoin(directory, 'harm', 'ToSubjectSpace_' + prefix.replace(f'_b{bshell_b}',''))
 
 
@@ -243,7 +244,7 @@ def reconst(imgPath, maskPath, moving, templatePath):
 
     antsApply(templatePath, pjoin(directory, 'harm'), prefix)
 
-    print(f'Reconstructing signal from {imgPath} rish features ...')
+    log_info(f'Reconstructing signal from {imgPath} rish features ...')
     harmImg, harmMask = ring_masking(directory, prefix, maskPath, shm_coeff, b0, qb_model, img.header)
     copyfile(inPrefix + '.bvec', harmImg.split('.nii')[0] + '.bvec')
     copyfile(inPrefix + '.bval', harmImg.split('.nii')[0] + '.bval')

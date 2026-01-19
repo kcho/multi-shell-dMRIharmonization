@@ -19,6 +19,7 @@ from warnings import warn
 from plumbum import local
 from util import abspath, load, isfile, getpid
 from findBshells import findBShells
+from logging_config import log_info
 import sys
 
 
@@ -35,23 +36,23 @@ def check_bshells(ref_imgs, ref_bvals):
         bvals= findBShells(inPrefix+'.bval')
 
         if (bvals==ref_bvals).all():
-            print('b-shells matched for', imgPath.name)
+            log_info('b-shells matched for', imgPath.name)
 
         else:
-            print(f'\nUnmatched b-shells for {imgPath.name}')
-            print(bvals)
-            print(f'ref_bvals {ref_bvals}\n')
+            log_info(f'\nUnmatched b-shells for {imgPath.name}')
+            log_info(bvals)
+            log_info(f'ref_bvals {ref_bvals}\n')
             unmatched.append(imgPath._path)
 
-    print('')
+    log_info('')
     if len(unmatched):
-        print('Unmatched cases:')
-        print(unmatched)
+        log_info('Unmatched cases:')
+        log_info(unmatched)
         raise ValueError('Leave out the unmatched cases or change the reference case for determining b-shell to run multi-shell-dMRIharmonization')
 
     else:
-        print('All cases have same b-shells. Data is good for running multi-shell-dMRIharmonization')
-    print('')
+        log_info('All cases have same b-shells. Data is good for running multi-shell-dMRIharmonization')
+    log_info('')
 
 
 
@@ -67,23 +68,23 @@ def check_resolution(ref_imgs, ref_res):
         res= load(imgPath._path).header['pixdim'][1:4]
 
         if (res-ref_res).sum()<=10e-6:
-            print('spatial resolution matched for', imgPath.name)
+            log_info('spatial resolution matched for', imgPath.name)
 
         else:
-            print(f'\nUnmatched spatial resolution for {imgPath.name}')
-            print(res)
-            print(f'ref_res {ref_res}\n')
+            log_info(f'\nUnmatched spatial resolution for {imgPath.name}')
+            log_info(res)
+            log_info(f'ref_res {ref_res}\n')
             unmatched.append(imgPath._path)
 
-    print('')
+    log_info('')
     if len(unmatched):
-        print('Unmatched cases:')
-        print(unmatched)
+        log_info('Unmatched cases:')
+        log_info(unmatched)
         raise ValueError('Leave out the unmatched cases or change the reference case for determining spatial resolution to run multi-shell-dMRIharmonization')
 
     else:
-        print('All cases have same spatial resolution. Data is good for running multi-shell-dMRIharmonization')
-    print('')
+        log_info('All cases have same spatial resolution. Data is good for running multi-shell-dMRIharmonization')
+    log_info('')
 
 
 def consistencyCheck(ref_csv, outputBshellFile= None, outPutResolutionFile= None):
@@ -99,7 +100,7 @@ def consistencyCheck(ref_csv, outputBshellFile= None, outPutResolutionFile= None
         ref_res = np.load(outPutResolutionFile)
     else:
         ref_bshell_img = ref_imgs[0]
-        print(f'Using {ref_bshell_img} to determine b-shells')
+        log_info(f'Using {ref_bshell_img} to determine b-shells')
 
         inPrefix = abspath(ref_bshell_img).split('.nii')[0]
         ref_bvals = findBShells(inPrefix + '.bval', outputBshellFile)
@@ -108,23 +109,23 @@ def consistencyCheck(ref_csv, outputBshellFile= None, outPutResolutionFile= None
         np.save(outPutResolutionFile, ref_res)
 
 
-    print('b-shells are', ref_bvals)
+    log_info('b-shells are', ref_bvals)
 
-    print('\nSite', ref_csv, '\n')
+    log_info('\nSite', ref_csv, '\n')
 
-    print('Checking consistency of b-shells among subjects')
+    log_info('Checking consistency of b-shells among subjects')
     check_bshells(ref_imgs, ref_bvals)
 
 
-    print('spatial resolution is', ref_res)
-    print('Checking consistency of spatial resolution among subjects')
+    log_info('spatial resolution is', ref_res)
+    log_info('Checking consistency of spatial resolution among subjects')
     check_resolution(ref_imgs, ref_res)
 
 
 
 if __name__ == '__main__':
     if len(sys.argv)==1 or sys.argv[1]=='-h' or sys.argv[1]=='--help':
-        print('''Check consistency of b-shells and spatial resolution among subjects
+        log_info('''Check consistency of b-shells and spatial resolution among subjects
 Usage:
 consistencyCheck list.csv/txt ref_bshell_bvalues.txt ref_res_file.npy
 

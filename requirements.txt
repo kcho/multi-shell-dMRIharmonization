@@ -4,4 +4,5 @@ plumbum
 pynrrd
 pandas
 matplotlib
+rich
 git+https://github.com/pnlbwh/conversion.git

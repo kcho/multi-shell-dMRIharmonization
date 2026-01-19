@@ -15,6 +15,7 @@
 
 from normalize import normalize_data, find_b0
 from util import *
+from logging_config import log_info
 
 def rish(imgPath, maskPath, inPrefix, outPrefix, N_shm, qb_model= None):
 
@@ -25,7 +26,7 @@ def rish(imgPath, maskPath, inPrefix, outPrefix, N_shm, qb_model= None):
     mask_data= load(maskPath).get_fdata()
 
     if not qb_model:
-        print('Computing shm_coeff of ', imgPath)
+        log_info('Computing shm_coeff of ', imgPath)
         bvals, bvecs = read_bvals_bvecs(inPrefix+'.bval', inPrefix+'.bvec')
 
         # make bvals and bvecs full sampled to encounter reconstruction error in reconstSignal.py

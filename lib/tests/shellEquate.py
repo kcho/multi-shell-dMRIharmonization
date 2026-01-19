@@ -18,6 +18,7 @@ from plumbum import cli, local
 from conversion import read_bvals, read_bvecs, write_bvals, write_bvecs, read_imgs, read_imgs_masks
 from nibabel import load
 from util import abspath, pjoin, save_nifti, RAISE, isfile
+from logging_config import log_info
 import numpy as np
 from multiprocessing import Pool
 from findBshells import BSHELL_MIN_DIST
@@ -25,11 +26,11 @@ from findBshells import BSHELL_MIN_DIST
 def separateBshells(imgPath, ref_bvals_file=None, ref_bvals=None):
 
     if ref_bvals_file:
-        print('Reading reference b-shell file ...')
+        log_info('Reading reference b-shell file ...')
         ref_bvals= read_bvals(ref_bvals_file)
 
 
-    print('Separating b-shells for', imgPath)
+    log_info('Separating b-shells for', imgPath)
         
     imgPath= local.path(imgPath)
 
@@ -67,9 +68,9 @@ def separateBshells(imgPath, ref_bvals_file=None, ref_bvals=None):
             bvals_written= read_bvals(bPrefix+'.bval')
             bvecs_written= read_bvecs(bPrefix+'.bvec')
             
-            print('bshell difference', abs(b0_bshell-bshell_written).sum())
-            print('bvals difference', (np.array(b0_bvals)-np.array(bvals_written)).sum())
-            print('bvecs difference', (np.array(b0_bvecs)-np.array(bvecs_written)).sum())
+            log_info('bshell difference', abs(b0_bshell-bshell_written).sum())
+            log_info('bvals difference', (np.array(b0_bvals)-np.array(bvals_written)).sum())
+            log_info('bvecs difference', (np.array(b0_bvecs)-np.array(bvecs_written)).sum())
             
 
 def separateAllBshells(ref_csv, ref_bvals_file, ncpu=4, outPrefix= None):

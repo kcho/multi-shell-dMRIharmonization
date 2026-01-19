@@ -20,6 +20,7 @@ from bvalMap import remapBval
 from resampling import resampling
 from dti import dti
 from rish import rish
+from logging_config import log_info
 
 
 SCRIPTDIR= dirname(__file__)
@@ -76,7 +77,7 @@ def preprocessing(imgPath, maskPath):
         outPrefix = inPrefix + '_denoised'
 
         if force or not isfile(outPrefix+'.nii.gz'):
-            print('Denoising ', imgPath)
+            log_info('Denoising ', imgPath)
             lowResImg, _ = denoising(lowResImg, lowResMask)
             save_nifti(outPrefix+'.nii.gz', lowResImg, lowRes.affine, lowResImgHdr)
             copyfile(inPrefix + '.bvec', outPrefix + '.bvec')
@@ -92,7 +93,7 @@ def preprocessing(imgPath, maskPath):
         outPrefix = inPrefix + '_bmapped'
 
         if force or not isfile(outPrefix+'.nii.gz'):
-            print('B value mapping ', imgPath)
+            log_info('B value mapping ', imgPath)
             bvals, _ = read_bvals_bvecs(inPrefix + '.bval', None)
             lowResImg, bvals = remapBval(lowResImg, lowResMask, bvals, bvalMap)
             save_nifti(outPrefix+'.nii.gz', lowResImg, lowRes.affine, lowResImgHdr)
@@ -113,7 +114,7 @@ def preprocessing(imgPath, maskPath):
         outPrefix = inPrefix + '_resampled'
 
         if force or not isfile(outPrefix+'.nii.gz'):
-            print('Resampling ', imgPath)
+            log_info('Resampling ', imgPath)
             bvals, _ = read_bvals_bvecs(inPrefix + '.bval', None)
             imgPath, maskPath = resampling(imgPath, maskPath, lowResImg, lowResImgHdr, lowResMask, lowResMaskHdr, sp_high, bvals)
             copyfile(inPrefix + '.bvec', outPrefix + '.bvec')

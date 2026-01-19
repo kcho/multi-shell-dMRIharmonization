@@ -17,10 +17,11 @@ from conversion import read_bvals, write_bvals
 import numpy as np
 from os.path import abspath
 from util import B0_THRESH, B_QUANT, BSHELL_MIN_DIST
+from logging_config import log_info
 
 
 def usage():
-    print('''Find b-shells in a DWI 
+    log_info('''Find b-shells in a DWI 
 Usage:
 findBShells /path/to/input/bval/file /output/file/to/write/bshells
 ''')
@@ -40,15 +41,15 @@ def findBShells(bvalFile, outputBshellFile= None):
     # round to multiple of B_QUANT (50 or 100)
     quantized_bvals= np.unique(np.round(quantized_bvals/B_QUANT)*B_QUANT)
 
-    print('b-shell bvalues', quantized_bvals)
+    log_info('b-shell bvalues', quantized_bvals)
 
     for bval in quantized_bvals:
-        print('Indices corresponding to b-shell', bval)
-        print(np.where(abs(bval-given_bvals)<=BSHELL_MIN_DIST)[0],'\n')
+        log_info('Indices corresponding to b-shell', bval)
+        log_info(np.where(abs(bval-given_bvals)<=BSHELL_MIN_DIST)[0])
 
 
     if outputBshellFile:
-        print('Saving the b-shell bvalues in', outputBshellFile)
+        log_info('Saving the b-shell bvalues in', outputBshellFile)
         write_bvals(outputBshellFile, quantized_bvals)
 
     return quantized_bvals

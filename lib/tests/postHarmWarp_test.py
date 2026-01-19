@@ -18,6 +18,7 @@ from plumbum import FG
 import multiprocessing
 from fileUtil import read_caselist
 from util import *
+from logging_config import log_info
 
 SCRIPTDIR= abspath(dirname(__file__))
 
@@ -35,7 +36,7 @@ def antsReg(img, mask, mov, outPrefix):
     else:
         logFile= pjoin(outPrefix+ '_ANTs.log')
         f= open(logFile, 'w')
-        print(f'See {logFile} for details of registration')
+        log_info(f'See {logFile} for details of registration')
 
     if mask:
         p= Popen((' ').join(['antsRegistrationSyNQuick.sh',
@@ -61,7 +62,7 @@ def antsReg(img, mask, mov, outPrefix):
 
 def register_reference(imgPath, warp2mni, trans2mni, templatePath):
 
-    print(f'Warping {basename(imgPath)} diffusion measures to standard space')
+    log_info(f'Warping {basename(imgPath)} diffusion measures to standard space')
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
     prefix = basename(inPrefix)
@@ -75,9 +76,9 @@ def register_reference(imgPath, warp2mni, trans2mni, templatePath):
         moving = pjoin(templatePath, prefix + f'_Warped{dm}.nii.gz')
         
         if isfile(moving):
-            print('moving image:', basename(moving))
+            log_info('moving image:', basename(moving))
         if isfile(output):
-           print('output image:',basename(output), '\n')
+           log_info('output image:',basename(output), '\n')
 
         # so warp diffusion measure to MNI space directly
         '''
@@ -92,7 +93,7 @@ def register_reference(imgPath, warp2mni, trans2mni, templatePath):
 
 def register_target(imgPath, templatePath):
 
-    print(f'Warping {imgPath} diffusion measures to standard space')
+    log_info(f'Warping {imgPath} diffusion measures to standard space')
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
     prefix = basename(inPrefix)
@@ -110,9 +111,9 @@ def register_target(imgPath, templatePath):
 
         moving = pjoin(directory, 'dti', prefix + f'_{dm}.nii.gz')
         if isfile(moving):
-            print('moving image:', basename(moving))
+            log_info('moving image:', basename(moving))
         if isfile(output):
-           print('output image:',basename(output), '\n')
+           log_info('output image:',basename(output), '\n')
 
         # warp diffusion measure to template space first, then to MNI space
         '''
@@ -127,7 +128,7 @@ def register_target(imgPath, templatePath):
 
 def register_harmonized(imgPath, warp2mni, trans2mni, templatePath, siteName):
 
-    print(f'Warping {imgPath} diffusion measures to standard space')
+    log_info(f'Warping {imgPath} diffusion measures to standard space')
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
     prefix = basename(inPrefix)
@@ -148,11 +149,11 @@ def register_harmonized(imgPath, warp2mni, trans2mni, templatePath, siteName):
 
         moving = pjoin(directory, 'dti', prefix + f'_{dm}.nii.gz')
         if isfile(moving):
-            print('moving image:', basename(moving))
+            log_info('moving image:', basename(moving))
         if isfile(warp2tmp) and isfile(trans2tmp):
-            print('transforms:', basename(warp2tmp), basename(trans2tmp))
+            log_info('transforms:', basename(warp2tmp), basename(trans2tmp))
         if isfile(output):
-           print('output image:',basename(output), '\n')
+           log_info('output image:',basename(output), '\n')
 
         # warp diffusion measure to template space first, then to MNI space
         '''

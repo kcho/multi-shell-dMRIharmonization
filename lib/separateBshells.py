@@ -18,6 +18,7 @@ from plumbum import cli, local
 from conversion import read_bvals, read_bvecs, write_bvals, write_bvecs, read_imgs, read_imgs_masks
 from nibabel import load
 from util import abspath, pjoin, save_nifti, RAISE, isfile
+from logging_config import log_info
 import numpy as np
 from multiprocessing import Pool
 from findBshells import BSHELL_MIN_DIST
@@ -25,11 +26,11 @@ from findBshells import BSHELL_MIN_DIST
 def separateBshells(imgPath, ref_bvals_file=None, ref_bvals=None):
 
     if ref_bvals_file:
-        print('Reading reference b-shell file ...')
+        log_info('Reading reference b-shell file ...')
         ref_bvals= read_bvals(ref_bvals_file)
 
 
-    print('Separating b-shells for', imgPath)
+    log_info('Separating b-shells for', imgPath)
         
     imgPath= local.path(imgPath)
 
