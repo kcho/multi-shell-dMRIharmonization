@@ -23,6 +23,7 @@ from conversion import read_imgs, read_imgs_masks
 from harm_plot import harm_plot, generate_csv
 import pandas as pd
 from datetime import datetime
+from logging_config import log_info
 
 ROOTDIR= abspath(pjoin(LIBDIR, '..'))
 mniTmp = pjoin(ROOTDIR, 'IITAtlas', 'IITmean_FA.nii.gz')
@@ -52,7 +53,7 @@ def antsReg(img, mask, mov, outPrefix, n_thread=1):
 
 def register_subject(imgPath, warp2mni, trans2mni, templatePath, siteName, bshell_b):
 
-    print(f'Warping {imgPath} diffusion measures to standard space')
+    log_info(f'Warping {imgPath} diffusion measures to standard space')
     directory = dirname(imgPath)
     basePrefix= psplit(imgPath)[-1].split('.nii')[0] # should have _FA at the end
     prefix = basePrefix.replace('_FA', '')
@@ -163,7 +164,7 @@ def main():
     # read FA image list
     try:
         imgs, _ = read_imgs_masks(imgList)
-        print('(Img,Mask) list is provided. FA images are assumed to be directoryOfImg/dti/ImgPrefix_FA.nii.gz, make sure they are there\n')
+        log_info('(Img,Mask) list is provided. FA images are assumed to be directoryOfImg/dti/ImgPrefix_FA.nii.gz, make sure they are there\n')
         faImgs= []
 
         for imgPath in imgs:
@@ -178,7 +179,7 @@ def main():
 
     except:
         faImgs= read_imgs(imgList)
-        print('FA image list is provided.')
+        log_info('FA image list is provided.')
 
 
     # register and obtain *_InMNI_FA.nii.gz
@@ -202,8 +203,8 @@ def main():
     
     outPrefix= pjoin(templatePath, header)
     
-    print('\n\nComputing statistics\n\n')
-    print(f'{siteName} site: ')
+    log_info('\n\nComputing statistics\n\n')
+    log_info(f'{siteName} site: ')
     site_means= analyzeStat(mniFAimgs)
     generate_csv(faImgs, site_means, outPrefix, bshell_b)
 
@@ -224,12 +225,12 @@ def main():
     
     # print statistics on console
     with open(statFile) as f:
-        print(f.read())
+        log_info(f.read())
 
     # generate demonstrative plots
     ebar = harm_plot([site_means], [header], outPrefix, bshell_b)
 
-    print(f'\nDetailed statistics, summary results, and demonstrative plots are saved in:\n\n{outPrefix}_stat.csv'
+    log_info(f'\nDetailed statistics, summary results, and demonstrative plots are saved in:\n\n{outPrefix}_stat.csv'
           f'\n{statFile}\n{ebar}\n')
 
 

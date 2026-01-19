@@ -21,6 +21,7 @@ import io
 from determineNshm import verifyNshmForAll, determineNshm
 from util import *
 from fileUtil import read_caselist, check_dir, check_csv
+from logging_config import log_info
 
 N_CPU= multiprocessing.cpu_count()
 SCRIPTDIR= dirname(__file__)
@@ -214,26 +215,26 @@ class pipeline(cli.Application):
             pool.close()
             pool.join()
 
-        print('calculating dti statistics i.e. mean, std for reference site')
+        log_info('calculating dti statistics i.e. mean, std for reference site')
         refMaskPath= dti_stat(self.reference, refImgs, refMasks, self.templatePath, templateHdr)
-        print('calculating dti statistics i.e. mean, std for target site')
+        log_info('calculating dti statistics i.e. mean, std for target site')
         targetMaskPath= dti_stat(self.target, targetImgs, targetMasks, self.templatePath, templateHdr)
 
-        print('masking dti statistics of reference site')
+        log_info('masking dti statistics of reference site')
         _= template_masking(refMaskPath, targetMaskPath, self.templatePath, self.reference)
-        print('masking dti statistics of target site')
+        log_info('masking dti statistics of target site')
         templateMask= template_masking(refMaskPath, targetMaskPath, self.templatePath, self.target)
 
-        print('calculating rish_statistics i.e. mean, std calculation of reference site')
+        log_info('calculating rish_statistics i.e. mean, std calculation of reference site')
         rish_stat(self.reference, refImgs, self.templatePath, templateHdr)
-        print('calculating rish_statistics i.e. mean, std calculation of target site')
+        log_info('calculating rish_statistics i.e. mean, std calculation of target site')
         rish_stat(self.target, targetImgs, self.templatePath, templateHdr)
 
-        print('calculating templates for diffusionMeasures')
+        log_info('calculating templates for diffusionMeasures')
         difference_calc(self.reference, self.target, refImgs, targetImgs, self.templatePath, templateHdr,
                         templateMask, self.diffusionMeasures)
 
-        print('calculating templates for rishFeatures')
+        log_info('calculating templates for rishFeatures')
         difference_calc(self.reference, self.target, refImgs, targetImgs, self.templatePath, templateHdr,
                         templateMask, [f'L{i}' for i in range(0, self.N_shm+1, 2)])
 
@@ -243,7 +244,7 @@ class pipeline(cli.Application):
             with open(prevTemplateFile, 'w'):
                 pass
 
-        print('\n\nTemplate creation completed \n\n')
+        log_info('\n\nTemplate creation completed \n\n')
 
 
     def harmonizeData(self):
@@ -360,20 +361,20 @@ class pipeline(cli.Application):
                 pool.close()
                 pool.join()
             
-        print('\n\nHarmonization completed\n\n')
+        log_info('\n\nHarmonization completed\n\n')
 
 
     def post_debug(self):
 
         from debug_fa import sub2tmp2mni
 
-        print('\n\n Reference site')
+        log_info('\n\n Reference site')
         sub2tmp2mni(self.templatePath, self.reference, self.ref_csv, ref= True)
 
-        print('\n\n Target site before harmonization')
+        log_info('\n\n Target site before harmonization')
         sub2tmp2mni(self.templatePath, self.target, self.tar_unproc_csv, tar_unproc= True)
 
-        print('\n\n Target site after harmonization')
+        log_info('\n\n Target site after harmonization')
         sub2tmp2mni(self.templatePath, self.target, self.harm_csv, tar_harm= True)
 
 
@@ -387,22 +388,22 @@ class pipeline(cli.Application):
         from harm_plot import generate_csv, harm_plot
         import pandas as pd
         
-        print('\n\nComputing statistics:')
+        log_info('\n\nComputing statistics:')
         
-        print(f'{self.reference} site')
+        log_info(f'{self.reference} site')
         ref_mean = analyzeStat(self.ref_csv, self.templatePath)
         generate_csv(self.ref_csv, ref_mean, pjoin(self.templatePath, self.reference), self.bshell_b)
 
-        print(f'{self.target} site before harmonization')
+        log_info(f'{self.target} site before harmonization')
         target_mean_before = analyzeStat(self.tar_unproc_csv, self.templatePath)
         generate_csv(self.tar_unproc_csv, target_mean_before, pjoin(self.templatePath, self.target+'_before'), self.bshell_b)
 
-        print(f'{self.target} site after harmonization')
+        log_info(f'{self.target} site after harmonization')
         target_mean_after = analyzeStat(self.harm_csv, self.templatePath)
         generate_csv(self.harm_csv, target_mean_after, pjoin(self.templatePath, self.target+'_after'), self.bshell_b)
 
         
-        print('\n\nPrinting statistics:')
+        log_info('\n\nPrinting statistics:')
         # save statistics for future
         statFile= pjoin(self.templatePath, 'meanFAstat.csv')
         timestamp= datetime.now().strftime('%m/%d/%y %H:%M')
@@ -424,7 +425,7 @@ class pipeline(cli.Application):
 
         # print statistics on console
         with open(statFile) as f:
-            print(f.read())
+            log_info(f.read())
             
         
         # generate graph
@@ -432,7 +433,7 @@ class pipeline(cli.Application):
                          labels=[self.reference, self.target+'_before', self.target+'_after'],
                          outPrefix=pjoin(self.templatePath,'meanFAstat'), bshell_b=self.bshell_b)
 
-        print(f'\nDetailed statistics, summary results, and demonstrative plots are saved in:\n\n{self.templatePath}*_stat.csv'
+        log_info(f'\nDetailed statistics, summary results, and demonstrative plots are saved in:\n\n{self.templatePath}*_stat.csv'
               f'\n{statFile}\n{ebar}\n')
 
 
@@ -530,9 +531,9 @@ class pipeline(cli.Application):
             import fileinput
             for line in fileinput.input(configFile, inplace=True):
                 if 'force' in line:
-                    print('force = 0')
+                    log_info('force = 0')
                 else:
-                    print(line)
+                    log_info(line)
             self.force= False
             
         if self.process:

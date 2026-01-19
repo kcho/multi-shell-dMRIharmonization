@@ -18,6 +18,7 @@ from glob import glob
 from scipy.ndimage import binary_opening, generate_binary_structure
 from scipy.ndimage.filters import gaussian_filter
 from util import *
+from logging_config import log_info
 import sys
 
 eps= 2.2204e-16
@@ -92,7 +93,7 @@ def antsMult(caselist, outPrefix):
     else:
         logFile= pjoin(dirname(outPrefix), 'template_construct.log')
         f= open(logFile, 'w')
-        print(f'See {logFile} for details of template construction')
+        log_info(f'See {logFile} for details of template construction')
 
     # for reasons whatsoever, N_proc is not available here though it is defined globally
     # hence, re-read it
@@ -233,7 +234,7 @@ def difference_calc(refSite, targetSite, refImgs, targetImgs,
         per_diff_smooth= []
         scale= []
         if travelHeads:
-            print('Using travelHeads for computing templates of',dm)
+            log_info('Using travelHeads for computing templates of',dm)
             for refImg, targetImg in zip(refImgs, targetImgs):
                 prefix = basename(refImg).split('.nii')[0]
                 ref= load_nifti(pjoin(templatePath, f'{prefix}_Warped{dm}.nii.gz'))[0]

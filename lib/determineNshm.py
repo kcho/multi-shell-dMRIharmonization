@@ -17,10 +17,11 @@ import numpy as np
 from conversion import read_bvals, read_imgs_masks
 from findBshells import findBShells
 from util import dirname, basename, pjoin, B0_THRESH
+from logging_config import log_info
 
 def determineNshm(bvalFile):
 
-    print(f'Determining maximum possible order of spherical harmonics for {bvalFile}\n')
+    log_info(f'Determining maximum possible order of spherical harmonics for {bvalFile}\n')
 
     bvals= np.array(read_bvals(bvalFile))
     N_b= len(np.where(bvals>B0_THRESH)[0])
@@ -36,13 +37,13 @@ def determineNshm(bvalFile):
     else:
         N_shm = 8
 
-    print(f'Maximum possible order is {N_shm} for {N_b} non-zero gradients\n')
+    log_info(f'Maximum possible order is {N_shm} for {N_b} non-zero gradients\n')
 
     return (N_shm, N_b)
 
 def verifySingleShellNess(bvalFile):
 
-    print(f'Verifying {bvalFile} is single shell ...\n')
+    log_info(f'Verifying {bvalFile} is single shell ...\n')
 
     quantized_bvals= findBShells(bvalFile)
 
@@ -62,14 +63,14 @@ def verifyNshmForAll(csvFile, N_shm):
 def verifyNshm(nshm, bvalFile):
 
     if nshm>=2:
-        print(f'Verifying suitability of spherical harmonics order {nshm} for {bvalFile}\n')
+        log_info(f'Verifying suitability of spherical harmonics order {nshm} for {bvalFile}\n')
 
     N_shm, N_b= determineNshm(bvalFile)
     if nshm>=2 and nshm>N_shm:
         raise ValueError(f'Order of spherical harmonics {nshm} is higher than possible with {N_b} gradients for {bvalFile}. '
                          'See README.md and reduce --nshm')
     elif nshm>=2:
-        print(f'Spherical harmonics order {nshm} is suitable, continuing\n')
+        log_info(f'Spherical harmonics order {nshm} is suitable, continuing\n')
 
 
 

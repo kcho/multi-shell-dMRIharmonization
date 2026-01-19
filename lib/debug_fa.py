@@ -17,6 +17,7 @@ from preprocess import read_caselist
 from reconstSignal import antsReg
 import multiprocessing
 from util import *
+from logging_config import log_info
 
 SCRIPTDIR= dirname(__file__)
 ROOTDIR= abspath(pjoin(SCRIPTDIR, '..'))
@@ -30,7 +31,7 @@ bshell_b = config['DEFAULT']['bshell_b']
 
 def register_reference(imgPath, warp2mni, trans2mni, templatePath):
 
-    print(f'Warping {imgPath} diffusion measures to standard space')
+    log_info(f'Warping {imgPath} diffusion measures to standard space')
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
     prefix = basename(inPrefix)
@@ -55,7 +56,7 @@ def register_reference(imgPath, warp2mni, trans2mni, templatePath):
 
 def register_target(imgPath, templatePath):
 
-    print(f'Warping {imgPath} diffusion measures to standard space')
+    log_info(f'Warping {imgPath} diffusion measures to standard space')
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
     prefix = basename(inPrefix)
@@ -84,7 +85,7 @@ def register_target(imgPath, templatePath):
 
 def register_harmonized(imgPath, warp2mni, trans2mni, templatePath, siteName):
 
-    print(f'Warping {imgPath} diffusion measures to standard space')
+    log_info(f'Warping {imgPath} diffusion measures to standard space')
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
     prefix = basename(inPrefix)

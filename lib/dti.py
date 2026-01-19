@@ -12,6 +12,7 @@
 # ===============================================================================
 
 from util import *
+from logging_config import log_info
 
 def dti(imgPath, maskPath, inPrefix, outPrefix, tool='FSL'):
 
@@ -20,7 +21,7 @@ def dti(imgPath, maskPath, inPrefix, outPrefix, tool='FSL'):
     masked_vol = applymask(vol.get_fdata(), mask.get_fdata())
 
     if tool=='DIPY':
-        print('dipy dtifit ', imgPath)
+        log_info('dipy dtifit ', imgPath)
 
         bvals, bvecs = read_bvals_bvecs(inPrefix + '.bval', inPrefix + '.bvec')
 
@@ -38,7 +39,7 @@ def dti(imgPath, maskPath, inPrefix, outPrefix, tool='FSL'):
         from plumbum.cmd import dtifit
         from plumbum import FG
 
-        print('fsl dtifit ', imgPath)
+        log_info('fsl dtifit ', imgPath)
         dtifit['-k', imgPath,
                '-m', maskPath,
                '-r', inPrefix + '.bvec',

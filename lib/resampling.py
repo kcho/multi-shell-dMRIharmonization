@@ -76,7 +76,7 @@ def resampling(lowResImgPath, lowResMaskPath, lowResImg, lowResImgHdr, lowResMas
         # resample the dwi ----------------------------------------------------------------
         highResImg= np.zeros((sx, sy, sz, lowResImg.shape[3]), dtype='float')
         for i in np.where(bvals > B0_THRESH)[0]:
-            print('Resampling gradient ', i)
+            log_info('Resampling gradient ', i)
             highResImg[:,:,:,i]= resize(lowResImg[:,:,:,i], (sx, sy, sz), order= sOrder, mode= 'symmetric')
 
         # resample the b0 -----------------------------------------------------------------
@@ -99,7 +99,7 @@ def resampling(lowResImgPath, lowResMaskPath, lowResImg, lowResImgHdr, lowResMas
         highResImg = np.zeros((sx, sy, sz, lowResImg.shape[3]), dtype='float')
 
         for i in np.where(bvals > B0_THRESH)[0]:
-            print('Resampling gradient ', i)
+            log_info('Resampling gradient ', i)
             highResImg[:,:,:,i]= resize_spm(lowResImg[:,:,:,i], inPrefix)
 
         # resample the b0 -----------------------------------------------------------------

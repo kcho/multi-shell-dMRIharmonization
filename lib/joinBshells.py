@@ -17,6 +17,7 @@ from plumbum import cli, local
 from conversion import read_bvals, read_imgs, read_imgs_masks
 from nibabel import load
 from util import abspath, pjoin, save_nifti, copyfile, RAISE, basename, dirname, isfile
+from logging_config import log_info
 import numpy as np
 from multiprocessing import Pool
 from findBshells import BSHELL_MIN_DIST
@@ -25,10 +26,10 @@ from findBshells import BSHELL_MIN_DIST
 def joinBshells(imgPath, ref_bvals_file=None, ref_bvals=None, sep_prefix=None):
 
     if ref_bvals_file:
-        print('Reading reference b-shell file ...')
+        log_info('Reading reference b-shell file ...')
         ref_bvals= read_bvals(ref_bvals_file)
 
-    print('Joining b-shells for', imgPath)
+    log_info('Joining b-shells for', imgPath)
 
     imgPath= local.path(imgPath)
     img= load(imgPath._path)

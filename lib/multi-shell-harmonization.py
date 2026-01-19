@@ -19,7 +19,7 @@ N_CPU= str(multiprocessing.cpu_count())
 from conversion import read_bvals
 from util import dirname, basename, pjoin, SCRIPTDIR, remove, isfile
 from subprocess import check_call
-
+from logging_config import log_info
 from consistencyCheck import consistencyCheck
 
 from separateBshells import separateAllBshells
@@ -183,7 +183,7 @@ class multi_shell_pipeline(cli.Application):
         for bval in ref_bvals[ :-1]: # pass the last bval which is 0.
 
             if self.create and not self.process:
-                print('## template creation ##')
+                log_info('## template creation ##')
 
                 check_call((' ').join([pjoin(SCRIPTDIR, 'harmonization.py'),
                 '--tar_list', tarListOutPrefix+f'_b{int(bval)}.csv',
@@ -194,7 +194,7 @@ class multi_shell_pipeline(cli.Application):
 
 
             elif not self.create and self.process:
-                print('## data harmonization ##')
+                log_info('## data harmonization ##')
 
                 check_call((' ').join([pjoin(SCRIPTDIR, 'harmonization.py'),
                 '--tar_list', tarListOutPrefix + f'_b{int(bval)}.csv',
