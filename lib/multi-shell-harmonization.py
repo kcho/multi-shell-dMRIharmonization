@@ -17,7 +17,7 @@ from plumbum import cli
 import multiprocessing
 N_CPU= str(multiprocessing.cpu_count())
 from conversion import read_bvals
-from util import dirname, basename, pjoin, SCRIPTDIR, remove, isfile
+from util import abspath, dirname, basename, pjoin, SCRIPTDIR, remove, isfile
 from subprocess import check_call
 
 from consistencyCheck import consistencyCheck
@@ -119,7 +119,38 @@ class multi_shell_pipeline(cli.Application):
         default= False)
 
 
+    def run_debug_batch(self, ref_list_prefix, tar_list_prefix, ref_bvals):
+
+        mniTmp = pjoin(dirname(SCRIPTDIR), 'IITAtlas', 'IITmean_FA.nii.gz')
+        if not isfile(mniTmp):
+            raise FileNotFoundError(f'MNI template not found: {mniTmp}')
+
+        bshells = [str(int(bval)) for bval in sorted(ref_bvals) if int(bval) != 0]
+        if not bshells:
+            raise ValueError('No non-zero b-shells available for post-harmonization debug batch')
+
+        cmd = [
+            pjoin(SCRIPTDIR, 'run_debug_fa_recon_batch.py'),
+            '--templatePath', self.templatePath,
+            '--refSite', self.reference,
+            '--targetSite', self.target,
+            '--ref-pattern', f'{ref_list_prefix}_b{{bshell}}.csv.modified',
+            '--tar-unproc-pattern', f'{tar_list_prefix}_b{{bshell}}.csv.modified',
+            '--tar-harm-pattern', f'{tar_list_prefix}_b{{bshell}}.csv.modified.harmonized',
+            '--mniTmp', mniTmp,
+            '--bshells', ','.join(bshells),
+        ]
+
+        if self.force:
+            cmd.append('--force')
+
+        print('## post-harmonization multi-shell debug batch ##')
+        check_call(cmd)
+
+
     def main(self):
+
+        self.templatePath = abspath(self.templatePath)
 
         if self.N_proc=='-1':
             self.N_proc= N_CPU
@@ -234,6 +265,7 @@ class multi_shell_pipeline(cli.Application):
         
             if self.debug and self.ref_csv:
                 joinAllBshells(self.ref_csv, ref_bvals_file, 'reconstructed_', self.N_proc)
+                self.run_debug_batch(refListOutPrefix, tarListOutPrefix, ref_bvals)
 
 if __name__== '__main__':
     multi_shell_pipeline.run()
