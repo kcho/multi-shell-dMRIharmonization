@@ -176,7 +176,14 @@ class multi_shell_pipeline(cli.Application):
         if self.target_csv:
             consistencyCheck(self.target_csv, ref_bvals_file, ref_res_file, shells_to_ignore=self.shells_to_ignore)
 
-
+        ## ignore shells if specified
+        if self.shells_to_ignore:
+            shells_to_ignore_list = [int(bval) for bval in self.shells_to_ignore.split(',')]
+            ref_bvals = read_bvals(ref_bvals_file)
+            ref_bvals_filtered = [bval for bval in ref_bvals if int(bval) not in shells_to_ignore_list]
+            with open(ref_bvals_file, 'w') as f:
+                f.write(' '.join(map(str, ref_bvals_filtered)))
+        
         ## separate b-shells
         if self.ref_csv:
             refListOutPrefix= separateShellsWrapper(self.ref_csv, ref_bvals_file, self.N_proc)
