@@ -23,7 +23,14 @@ import sys
 from typing import List
 
 
-def check_bshells(ref_imgs, ref_bvals):
+def check_bshells(ref_imgs, ref_bvals, shells_to_ignore: List[int] = None):
+
+    ignore_bvals = []
+    if shells_to_ignore:
+        if isinstance(shells_to_ignore, str):
+            ignore_bvals = [int(bval) for bval in shells_to_ignore.split(',')]
+        else:
+            ignore_bvals = [int(bval) for bval in shells_to_ignore]
 
     unmatched=[]
     for imgPath in ref_imgs:
@@ -34,6 +41,8 @@ def check_bshells(ref_imgs, ref_bvals):
 
         inPrefix = abspath(imgPath).split('.nii')[0]
         bvals= findBShells(inPrefix+'.bval')
+        if ignore_bvals:
+            bvals = np.array([bval for bval in bvals if int(bval) not in ignore_bvals])
 
         if (bvals==ref_bvals).all():
             print('b-shells matched for', imgPath.name)
@@ -105,21 +114,20 @@ def consistencyCheck(ref_csv, outputBshellFile= None, outPutResolutionFile= None
         inPrefix = abspath(ref_bshell_img).split('.nii')[0]
         ref_bvals = findBShells(inPrefix + '.bval', outputBshellFile)
 
-        if shells_to_ignore:
-            ignore_bvals = [int(bval) for bval in shells_to_ignore.split(',')]
-            ref_bvals = np.array([bval for bval in ref_bvals if int(bval) not in ignore_bvals])
-            print(f'Ignoring b-shells {ignore_bvals}. Remaining b-shells are {ref_bvals}')
-
         ref_res = load(ref_bshell_img).header['pixdim'][1:4]
         np.save(outPutResolutionFile, ref_res)
 
+    if shells_to_ignore:
+        ignore_bvals = [int(bval) for bval in shells_to_ignore.split(',')]
+        ref_bvals = np.array([bval for bval in ref_bvals if int(bval) not in ignore_bvals])
+        print(f'Ignoring b-shells {ignore_bvals}. Remaining b-shells are {ref_bvals}')    
 
     print('b-shells are', ref_bvals)
 
     print('\nSite', ref_csv, '\n')
 
     print('Checking consistency of b-shells among subjects')
-    check_bshells(ref_imgs, ref_bvals)
+    check_bshells(ref_imgs, ref_bvals, shells_to_ignore=shells_to_ignore)
 
 
     print('spatial resolution is', ref_res)
