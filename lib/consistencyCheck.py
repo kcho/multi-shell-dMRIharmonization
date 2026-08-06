@@ -20,6 +20,7 @@ from plumbum import local
 from util import abspath, load, isfile, getpid
 from findBshells import findBShells
 import sys
+from typing import List
 
 
 def check_bshells(ref_imgs, ref_bvals):
@@ -86,7 +87,7 @@ def check_resolution(ref_imgs, ref_res):
     print('')
 
 
-def consistencyCheck(ref_csv, outputBshellFile= None, outPutResolutionFile= None):
+def consistencyCheck(ref_csv, outputBshellFile= None, outPutResolutionFile= None, shells_to_ignore: List[int] = None):
 
     try:
         ref_imgs, _ = read_imgs_masks(ref_csv)
@@ -103,6 +104,11 @@ def consistencyCheck(ref_csv, outputBshellFile= None, outPutResolutionFile= None
 
         inPrefix = abspath(ref_bshell_img).split('.nii')[0]
         ref_bvals = findBShells(inPrefix + '.bval', outputBshellFile)
+
+        if shells_to_ignore:
+            ignore_bvals = [int(bval) for bval in shells_to_ignore.split(',')]
+            ref_bvals = np.array([bval for bval in ref_bvals if int(bval) not in ignore_bvals])
+            print(f'Ignoring b-shells {ignore_bvals}. Remaining b-shells are {ref_bvals}')
 
         ref_res = load(ref_bshell_img).header['pixdim'][1:4]
         np.save(outPutResolutionFile, ref_res)

@@ -74,6 +74,11 @@ class multi_shell_pipeline(cli.Application):
         help= 'number of zero padding for denoising skull region during signal reconstruction',
         default= '10')
 
+    shells_to_ignore = cli.SwitchAttr(
+        '--shells_to_ignore',
+        help= 'b-shells to ignore during template creation and harmonization, e.g. --shells_to_ignore 2500,3000',
+        default= '')
+    
     force = cli.Flag(
         ['--force'],
         help='turn on this flag to overwrite existing data',
@@ -166,10 +171,10 @@ class multi_shell_pipeline(cli.Application):
                 remove(ref_bvals_file)
                 remove(ref_res_file)
 
-            consistencyCheck(self.ref_csv, ref_bvals_file, ref_res_file)
+            consistencyCheck(self.ref_csv, ref_bvals_file, ref_res_file, shells_to_ignore=self.shells_to_ignore)
 
         if self.target_csv:
-            consistencyCheck(self.target_csv, ref_bvals_file, ref_res_file)
+            consistencyCheck(self.target_csv, ref_bvals_file, ref_res_file, shells_to_ignore=self.shells_to_ignore)
 
 
         ## separate b-shells
