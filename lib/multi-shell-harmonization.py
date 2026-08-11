@@ -144,6 +144,7 @@ class multi_shell_pipeline(cli.Application):
             '--tar-harm-pattern', f'{tar_list_prefix}_b{{bshell}}.csv.modified.harmonized',
             '--mniTmp', mniTmp,
             '--bshells', ','.join(bshells),
+            '--force'
         ]
 
         if self.force:
