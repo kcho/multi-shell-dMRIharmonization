@@ -24,6 +24,8 @@ os.environ.setdefault('OMP_NUM_THREADS', '1')
 #   native→template0 via warp_bands transforms, then TemplateToMNI_{target}.
 # - Original reference _InMNI_* from upstream debug_fa still supported when not using
 #   --ref-reconstructed for stats.
+# - Reconstructed-reference dtifit now uses a largest-connected-component mask (mirrors
+#   ring_masking's mask narrowing) so its FA is comparably masked to the harmonized side.
 # ===============================================================================
 
 import multiprocessing
@@ -34,7 +36,8 @@ import sys
 from subprocess import Popen
 from os.path import dirname, basename, abspath, join as pjoin, exists
 from os import makedirs
-from nibabel import load
+from nibabel import load, Nifti1Image
+from skimage.measure import label as cc_label, regionprops as cc_regionprops
 
 
 def _run_ants_apply_transforms(moving, output, reference, transform_paths):
@@ -80,6 +83,30 @@ def antsReg(img, mask, mov, outPrefix):
                               '-o', outPrefix,
                               '-e', '123456']), shell=True, stdout=sys.stdout, stderr=sys.stdout)
         p.wait()
+
+
+def largest_connected_mask(maskPath, outPath, force=False):
+    """Restrict a binary mask to its largest connected component.
+
+    Mirrors the mask-narrowing findLargestConnectMask() applies in reconstSignal.ring_masking(),
+    so reference-reconstruction dtifit is not compared against a more generous mask than the
+    harmonized target's dtifit (which always uses a ring_masking-narrowed mask).
+    """
+
+    if exists(outPath) and not force:
+        return outPath
+
+    img = load(maskPath)
+    mask_data = img.get_fdata()
+
+    labeled = cc_label(mask_data > 0, connectivity=1)
+    regions = cc_regionprops(labeled)
+    if regions:
+        largest = max(regions, key=lambda r: r.area)
+        mask_data = (labeled == largest.label).astype(mask_data.dtype)
+
+    Nifti1Image(mask_data, img.affine, img.header).to_filename(outPath)
+    return outPath
 
 
 def dti_fit(imgPath, maskPath, force=False):
@@ -174,7 +201,9 @@ def process_reconstructed_reference(imgPath, maskPath, templatePath, mniTmp,
     warp = warps[0]
     trans = affines[0]
 
-    dti_fit(recon_dwi, maskPath, force=force)
+    lcc_mask = pjoin(directory, f'{recon_prefix}_lccmask.nii.gz')
+    lcc_mask = largest_connected_mask(maskPath, lcc_mask, force=force)
+    dti_fit(recon_dwi, lcc_mask, force=force)
 
     for dm in diffusionMeasures:
         output = pjoin(templatePath, recon_prefix + f'_InMNI_{dm}.nii.gz')
