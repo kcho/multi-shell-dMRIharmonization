@@ -260,6 +260,7 @@ class pipeline(cli.Application):
 
         # fit spherical harmonics on reference site
         if self.debug and self.ref_csv:
+            print(f'\n## reconstructing reference signal: {self.reference}, b={self.bshell_b} ##')
             check_csv(self.ref_unproc_csv, self.force)
             refImgs, refMasks= read_caselist(self.ref_unproc_csv)
 
@@ -309,6 +310,7 @@ class pipeline(cli.Application):
 
 
         # go through each file listed in csv, check their existence, create dti and harm directories
+        print(f'\n## harmonizing target signal: {self.target}, b={self.bshell_b} ##')
         check_csv(self.target_csv, self.force)
         targetImgs, targetMasks= common_processing(self.tar_unproc_csv)
 
@@ -351,6 +353,7 @@ class pipeline(cli.Application):
         
         
         if self.debug:
+            print(f'\n## computing DTI of harmonized data: {self.target}, b={self.bshell_b} ##')
             harmImgs, harmMasks= read_caselist(self.harm_csv)
 
             if self.N_proc==1:

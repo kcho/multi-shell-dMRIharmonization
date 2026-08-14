@@ -187,8 +187,10 @@ class multi_shell_pipeline(cli.Application):
         
         ## separate b-shells
         if self.ref_csv:
+            print(f'\n## separating b-shells: {self.reference} ##')
             refListOutPrefix= separateShellsWrapper(self.ref_csv, ref_bvals_file, self.N_proc, self.force)
         if self.target_csv:
+            print(f'\n## separating b-shells: {self.target} ##')
             tarListOutPrefix= separateShellsWrapper(self.target_csv, ref_bvals_file, self.N_proc, self.force)
 
 
@@ -250,7 +252,7 @@ class multi_shell_pipeline(cli.Application):
 
 
             elif not self.create and self.process:
-                print('## data harmonization ##')
+                print(f'\n## data harmonization: b={int(bval)} ##')
 
                 check_call((' ').join([pjoin(SCRIPTDIR, 'harmonization.py'),
                 '--tar_list', tarListOutPrefix + f'_b{int(bval)}.csv',
@@ -274,9 +276,11 @@ class multi_shell_pipeline(cli.Application):
 
         ## join harmonized data
         if self.process:
+            print(f'\n## joining harmonized data: {self.target} ##')
             joinAllBshells(self.target_csv, ref_bvals_file, 'harmonized_', self.N_proc, self.force)
         
             if self.debug and self.ref_csv:
+                print(f'\n## joining reconstructed reference: {self.reference} ##')
                 joinAllBshells(self.ref_csv, ref_bvals_file, 'reconstructed_', self.N_proc, self.force)
                 self.run_debug_batch(refListOutPrefix, tarListOutPrefix, ref_bvals)
 
