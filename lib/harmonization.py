@@ -290,6 +290,10 @@ class pipeline(cli.Application):
                 refImgs[i] = attributes[i][0]
                 refMasks[i] = attributes[i][1]
 
+            with open(self.ref_unproc_csv + '.modified', 'w') as fm:
+                for img, mask in zip(refImgs, refMasks):
+                    fm.write(f'{img},{mask}\n')
+
             if self.N_proc==1:
                 for imgPath, maskPath in zip(refImgs, refMasks):
                     approx(imgPath,maskPath)
