@@ -22,29 +22,30 @@ from multiprocessing import Pool
 from findBshells import BSHELL_MIN_DIST
 
 
-def joinBshells(imgPath, ref_bvals_file=None, ref_bvals=None, sep_prefix=None):
+def joinBshells(imgPath, ref_bvals_file=None, ref_bvals=None, sep_prefix=None, force=False):
 
     if ref_bvals_file:
         print('Reading reference b-shell file ...')
         ref_bvals= read_bvals(ref_bvals_file)
 
-    print('Joining b-shells for', imgPath)
-
     imgPath= local.path(imgPath)
-    img= load(imgPath._path)
-    dim= img.header['dim'][1:5]
-
     inPrefix= abspath(imgPath).split('.nii')[0]
     directory= dirname(inPrefix)
     prefix = basename(inPrefix)
 
+    harmPrefix= pjoin(directory, sep_prefix + prefix) if sep_prefix else inPrefix
+
+    if not force and isfile(harmPrefix + '.nii.gz'):
+        print(f'  {basename(harmPrefix)}.nii.gz already exists, skipping join')
+        return
+
+    print('Joining b-shells for', imgPath)
+
+    img= load(imgPath._path)
+    dim= img.header['dim'][1:5]
+
     bvalFile= inPrefix+'.bval'
     bvecFile= inPrefix+'.bvec'
-
-    if sep_prefix:
-        harmPrefix= pjoin(directory, sep_prefix+ prefix)
-    else:
-        harmPrefix= inPrefix
 
     if not isfile(harmPrefix+'.bval'):
         copyfile(bvalFile, harmPrefix+'.bval')
@@ -75,7 +76,7 @@ def joinBshells(imgPath, ref_bvals_file=None, ref_bvals=None, sep_prefix=None):
     save_nifti(harmPrefix + '.nii.gz', joinedDwi, b0Img.affine, b0Img.header)
 
 
-def joinAllBshells(tar_csv, ref_bvals_file, separatedPrefix=None, ncpu=4):
+def joinAllBshells(tar_csv, ref_bvals_file, separatedPrefix=None, ncpu=4, force=False):
 
     ref_bvals = read_bvals(ref_bvals_file)
     if tar_csv:
@@ -88,7 +89,7 @@ def joinAllBshells(tar_csv, ref_bvals_file, separatedPrefix=None, ncpu=4):
         pool = Pool(int(ncpu))
         results = []
         for imgPath in imgs:
-            results.append(pool.apply_async(joinBshells, kwds=({'imgPath': imgPath, 'ref_bvals': ref_bvals, 'sep_prefix': separatedPrefix})))
+            results.append(pool.apply_async(joinBshells, kwds=({'imgPath': imgPath, 'ref_bvals': ref_bvals, 'sep_prefix': separatedPrefix, 'force': force})))
 
         pool.close()
         pool.join()

@@ -222,11 +222,16 @@ def ring_masking(directory, prefix, maskPath, shm_coeff, b0, qb_model, hdr):
 
 def reconst(imgPath, maskPath, moving, templatePath):
 
-    img = load(imgPath)
-
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
     prefix = basename(inPrefix)
+
+    harmImg = pjoin(directory, f'harmonized_{prefix}.nii.gz')
+    harmMask = pjoin(directory, f'harmonized_{prefix}_mask.nii.gz')
+    if not force and isfile(harmImg):
+        return (harmImg, harmMask)
+
+    img = load(imgPath)
     outPrefix = pjoin(directory, 'harm', prefix)
     b0, shm_coeff, qb_model = rish(imgPath, maskPath, inPrefix, outPrefix, N_shm)
 

@@ -29,11 +29,11 @@ from joinBshells import joinAllBshells
 from fileUtil import check_dir
 
 
-def separateShellsWrapper(csvFile, ref_bshell_file, N_proc):
+def separateShellsWrapper(csvFile, ref_bshell_file, N_proc, force=False):
     
     outPrefix= csvFile.with_suffix('')._path
     
-    separateAllBshells(csvFile, ref_bshell_file, N_proc, outPrefix)
+    separateAllBshells(csvFile, ref_bshell_file, N_proc, outPrefix, force)
 
     return outPrefix
 
@@ -187,9 +187,9 @@ class multi_shell_pipeline(cli.Application):
         
         ## separate b-shells
         if self.ref_csv:
-            refListOutPrefix= separateShellsWrapper(self.ref_csv, ref_bvals_file, self.N_proc)
+            refListOutPrefix= separateShellsWrapper(self.ref_csv, ref_bvals_file, self.N_proc, self.force)
         if self.target_csv:
-            tarListOutPrefix= separateShellsWrapper(self.target_csv, ref_bvals_file, self.N_proc)
+            tarListOutPrefix= separateShellsWrapper(self.target_csv, ref_bvals_file, self.N_proc, self.force)
 
 
         ## define variables for template creation and data harmonization
@@ -274,10 +274,10 @@ class multi_shell_pipeline(cli.Application):
 
         ## join harmonized data
         if self.process:
-            joinAllBshells(self.target_csv, ref_bvals_file, 'harmonized_', self.N_proc)
+            joinAllBshells(self.target_csv, ref_bvals_file, 'harmonized_', self.N_proc, self.force)
         
             if self.debug and self.ref_csv:
-                joinAllBshells(self.ref_csv, ref_bvals_file, 'reconstructed_', self.N_proc)
+                joinAllBshells(self.ref_csv, ref_bvals_file, 'reconstructed_', self.N_proc, self.force)
                 self.run_debug_batch(refListOutPrefix, tarListOutPrefix, ref_bvals)
 
 if __name__== '__main__':
