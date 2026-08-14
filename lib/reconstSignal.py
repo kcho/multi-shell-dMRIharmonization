@@ -109,8 +109,6 @@ def findLargestConnectMask(img, mask):
 
 def approx(imgPath, maskPath):
 
-    print(f'Fitting spherical harmonics on {imgPath} ...')
-
     directory = dirname(imgPath)
     inPrefix = imgPath.split('.nii')[0]
     prefix = psplit(inPrefix)[-1]
@@ -119,6 +117,8 @@ def approx(imgPath, maskPath):
     
     if not force and isfile(harmImg):
         return
+
+    print(f'Fitting spherical harmonics on {imgPath} ...')
 
     b0, shm_coeff, qb_model = rish(imgPath, maskPath, inPrefix, outPrefix, N_shm)
     B = qb_model.B
