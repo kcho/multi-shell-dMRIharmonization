@@ -22,20 +22,23 @@ import numpy as np
 from multiprocessing import Pool
 from findBshells import BSHELL_MIN_DIST
 
-def separateBshells(imgPath, ref_bvals_file=None, ref_bvals=None):
+def separateBshells(imgPath, ref_bvals_file=None, ref_bvals=None, force=False):
 
     if ref_bvals_file:
         print('Reading reference b-shell file ...')
         ref_bvals= read_bvals(ref_bvals_file)
 
+    imgPath= local.path(imgPath)
+    inPrefix= abspath(imgPath).split('.nii')[0]
+
+    if not force and all(isfile(inPrefix + f'_b{int(b)}.nii.gz') for b in ref_bvals):
+        print(f'Skipping b-shell separation for {imgPath}, all outputs exist')
+        return
 
     print('Separating b-shells for', imgPath)
-        
-    imgPath= local.path(imgPath)
 
     img= load(imgPath._path)
     dwi= img.get_fdata()
-    inPrefix= abspath(imgPath).split('.nii')[0]
     bvals= np.array(read_bvals(inPrefix+'.bval'))
     bvecs= np.array(read_bvecs(inPrefix+'.bvec'))
 
@@ -69,7 +72,7 @@ def separateBshells(imgPath, ref_bvals_file=None, ref_bvals=None):
             write_bvecs(bPrefix+'.bvec', b0_bvecs)
 
 
-def separateAllBshells(ref_csv, ref_bvals_file, ncpu=4, outPrefix= None):
+def separateAllBshells(ref_csv, ref_bvals_file, ncpu=4, outPrefix= None, force=False):
 
     ref_bvals = read_bvals(ref_bvals_file)
 
@@ -83,7 +86,7 @@ def separateAllBshells(ref_csv, ref_bvals_file, ncpu=4, outPrefix= None):
     results = []
     for imgPath in imgs:
         results.append(pool.apply_async(separateBshells,
-                         kwds={'imgPath': imgPath, 'ref_bvals': ref_bvals}))
+                         kwds={'imgPath': imgPath, 'ref_bvals': ref_bvals, 'force': force}))
 
     pool.close()
     pool.join()

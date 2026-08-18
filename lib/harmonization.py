@@ -163,17 +163,19 @@ class pipeline(cli.Application):
         # createTemplate steps -----------------------------------------------------------------------------------------
 
         # read image lists
-        refImgs, refMasks= common_processing(self.ref_unproc_csv)
+        if not self.force and isfile(self.ref_unproc_csv + '.modified'):
+            refImgs, refMasks= read_caselist(self.ref_unproc_csv + '.modified')
+        else:
+            refImgs, refMasks= common_processing(self.ref_unproc_csv)
         if not self.ref_csv.endswith('.modified'):
             self.ref_csv += '.modified'
-        # debug: use the following line to omit processing again
-        # refImgs, refMasks = read_caselist(self.ref_csv)
 
-        targetImgs, targetMasks= common_processing(self.tar_unproc_csv)
+        if not self.force and isfile(self.tar_unproc_csv + '.modified'):
+            targetImgs, targetMasks= read_caselist(self.tar_unproc_csv + '.modified')
+        else:
+            targetImgs, targetMasks= common_processing(self.tar_unproc_csv)
         if not self.target_csv.endswith('.modified'):
             self.target_csv += '.modified'
-        # debug: use the following line to omit processing again
-        # targetImgs, targetMasks = read_caselist(self.target_csv)
 
         imgs= refImgs+targetImgs
         masks= refMasks+targetMasks
@@ -260,53 +262,62 @@ class pipeline(cli.Application):
 
         # fit spherical harmonics on reference site
         if self.debug and self.ref_csv:
+            print(f'\n## reconstructing reference signal: {self.reference}, b={self.bshell_b} ##')
             check_csv(self.ref_unproc_csv, self.force)
-            refImgs, refMasks= read_caselist(self.ref_unproc_csv)
+            if not self.force and isfile(self.ref_unproc_csv + '.modified'):
+                refImgs, refMasks = read_caselist(self.ref_unproc_csv + '.modified')
+                print(f'  preprocessing: skipped ({len(refImgs)} subjects, outputs exist)')
+            else:
+                refImgs, refMasks= read_caselist(self.ref_unproc_csv)
 
-            # For multi-shell-dMRIharmonization, lines 273-287 are ineffectual.
-            # Because, --bvalMap, --resample, --denoise flags are not supported for multi-shell-harmonization.py.
-            # Since the beginning of multi-shell-dMRIharmonization development,
-            # it is expected that multi-shell DWIs are matched by bvalues and resolution.
-            # However, the three flags are supported for (single-shell) harmonization.py.
-            # In which case, the aforementioned lines are effectual.
+                if self.N_proc==1:
+                    attributes=[]
+                    for imgPath, maskPath in zip(refImgs, refMasks):
+                        attributes.append(preprocessing(imgPath, maskPath))
 
-            if self.N_proc==1:
-                attributes=[]
-                for imgPath, maskPath in zip(refImgs, refMasks):
-                    attributes.append(preprocessing(imgPath, maskPath))
-            
-            elif self.N_proc>1:
-                res= []
-                pool = multiprocessing.Pool(self.N_proc)
-                for imgPath, maskPath in zip(refImgs, refMasks):
-                    res.append(pool.apply_async(func=preprocessing, args=(imgPath, maskPath)))
+                elif self.N_proc>1:
+                    res= []
+                    pool = multiprocessing.Pool(self.N_proc)
+                    for imgPath, maskPath in zip(refImgs, refMasks):
+                        res.append(pool.apply_async(func=preprocessing, args=(imgPath, maskPath)))
 
-                attributes = [r.get() for r in res]
+                    attributes = [r.get() for r in res]
 
-                pool.close()
-                pool.join()
+                    pool.close()
+                    pool.join()
 
-            for i in range(len(refImgs)):
-                refImgs[i] = attributes[i][0]
-                refMasks[i] = attributes[i][1]
+                for i in range(len(refImgs)):
+                    refImgs[i] = attributes[i][0]
+                    refMasks[i] = attributes[i][1]
+
+                with open(self.ref_unproc_csv + '.modified', 'w') as fm:
+                    for img, mask in zip(refImgs, refMasks):
+                        fm.write(f'{img},{mask}\n')
 
             if self.N_proc==1:
                 for imgPath, maskPath in zip(refImgs, refMasks):
                     approx(imgPath,maskPath)
 
             elif self.N_proc>1:
+                print(f'  fitting spherical harmonics for {len(refImgs)} subjects...')
                 pool = multiprocessing.Pool(self.N_proc)
                 for imgPath, maskPath in zip(refImgs, refMasks):
                     pool.apply_async(func= approx, args=(imgPath,maskPath,))
 
                 pool.close()
                 pool.join()
+                print('  done')
 
 
 
         # go through each file listed in csv, check their existence, create dti and harm directories
+        print(f'\n## harmonizing target signal: {self.target}, b={self.bshell_b} ##')
         check_csv(self.target_csv, self.force)
-        targetImgs, targetMasks= common_processing(self.tar_unproc_csv)
+        if not self.force and isfile(self.tar_unproc_csv + '.modified'):
+            targetImgs, targetMasks = read_caselist(self.tar_unproc_csv + '.modified')
+            print(f'  preprocessing: skipped ({len(targetImgs)} subjects, outputs exist)')
+        else:
+            targetImgs, targetMasks= common_processing(self.tar_unproc_csv)
 
 
         # reconstSignal steps ------------------------------------------------------------------------------------------
@@ -330,6 +341,7 @@ class pipeline(cli.Application):
                 fh.write(harmImg + ',' + harmMask + '\n')
 
         elif self.N_proc>1:
+            print(f'  reconstructing harmonized signal for {len(targetImgs)} subjects...')
             pool = multiprocessing.Pool(self.N_proc)
             res= []
             for imgPath, maskPath in zip(targetImgs, targetMasks):
@@ -342,11 +354,13 @@ class pipeline(cli.Application):
 
             pool.close()
             pool.join()
+            print('  done')
 
         fh.close()
         
         
         if self.debug:
+            print(f'\n## computing DTI of harmonized data: {self.target}, b={self.bshell_b} ##')
             harmImgs, harmMasks= read_caselist(self.harm_csv)
 
             if self.N_proc==1:
@@ -354,11 +368,13 @@ class pipeline(cli.Application):
                     dti_harm(imgPath,maskPath)
 
             elif self.N_proc>=1:
+                print(f'  fitting DTI for {len(harmImgs)} harmonized subjects...')
                 pool = multiprocessing.Pool(self.N_proc)
                 for imgPath,maskPath in zip(harmImgs,harmMasks):
                     pool.apply_async(func= dti_harm, args= (imgPath,maskPath,))
                 pool.close()
                 pool.join()
+                print('  done')
             
         print('\n\nHarmonization completed\n\n')
 
