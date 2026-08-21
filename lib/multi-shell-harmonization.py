@@ -282,7 +282,7 @@ class multi_shell_pipeline(cli.Application):
             if self.debug and self.ref_csv:
                 print(f'\n## joining reconstructed reference: {self.reference} ##')
                 joinAllBshells(self.ref_csv, ref_bvals_file, 'reconstructed_', self.N_proc, self.force)
-                if not self.create:
+                if self.create:
                     self.run_debug_batch(refListOutPrefix, tarListOutPrefix, ref_bvals)
 
 if __name__== '__main__':
